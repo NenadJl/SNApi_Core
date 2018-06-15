@@ -4,5 +4,6 @@ namespace SN_App.Repo.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
+
     }
 }

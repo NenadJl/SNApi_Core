@@ -28,6 +28,7 @@ namespace SN_App.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DataDBContext>(x => x.UseSqlServer(Configuration.GetConnectionString("Test")));
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
