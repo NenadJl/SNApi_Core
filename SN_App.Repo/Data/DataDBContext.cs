@@ -9,6 +9,6 @@ namespace SN_App.Repo.Data
     {
         public DataDBContext(DbContextOptions<DataDBContext> options) : base(options) {}
 
-        public DbSet<Value> Values { get; set; }
+    public DbSet<Value> Values { get; set; }
     }
 }

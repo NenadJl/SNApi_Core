@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +32,8 @@ namespace SN_App.Api
             services.AddDbContext<DataDBContext>(x => x.UseSqlServer(Configuration.GetConnectionString("Test")));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -38,13 +42,20 @@ namespace SN_App.Api
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+        
             }
             else
             {
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseCors(c => c.
+                AllowAnyHeader().
+                AllowAnyOrigin().
+                AllowAnyMethod().
+                AllowCredentials()
+            );
+            //app.UseHttpsRedirection();
             app.UseMvc();
         }
     }
