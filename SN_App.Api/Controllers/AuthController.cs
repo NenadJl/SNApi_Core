@@ -1,5 +1,11 @@
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using SN_App.Api.Dtos;
 using SN_App.Repo.Data.Repositories.Authentication;
 using SN_App.Repo.Models;
@@ -11,17 +17,20 @@ namespace SN_App.Api.Controllers
     public class AuthController : Controller
     {
         private readonly IAuthRepository _authRepository;
-        public AuthController(IAuthRepository authRepository)
+        private readonly IConfiguration _config;
+
+        public AuthController(IAuthRepository authRepository, IConfiguration config )
         {
             _authRepository = authRepository;
+            _config = config;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationDto userRegistrationDto)
         {
-    
+
             if (await _authRepository.UserExists(userRegistrationDto.Username))
-                ModelState.AddModelError("User Exists", "This username is already taken!");
+                ModelState.AddModelError("Username", "This username is already taken!");
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -37,9 +46,31 @@ namespace SN_App.Api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto userRegistrationDto)
+        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
         {
-            return Ok();
+            var userFromRepo = await _authRepository.Login(userLoginDto.Username, userLoginDto.Password);
+
+            if (userFromRepo == null)
+                return Unauthorized();
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            // var key = Encoding.ASCII.GetBytes("lelele"); 
+            var key = Encoding.ASCII.GetBytes(_config.GetSection("AppSettings:Key").Value); 
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
+                    new Claim(ClaimTypes.Name, userFromRepo.Username)
+                }), 
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return Ok(new {tokenString});
         }
     }
+
 }
