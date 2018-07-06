@@ -28,6 +28,7 @@ namespace SN_App.Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationDto userRegistrationDto)
         {
+            userRegistrationDto.Username = userRegistrationDto.Username.ToLower();
 
             if (await _authRepository.UserExists(userRegistrationDto.Username))
                 ModelState.AddModelError("Username", "This username is already taken!");
@@ -37,7 +38,7 @@ namespace SN_App.Api.Controllers
 
             var userToCreate = new User
             {
-                Username = userRegistrationDto.Username.ToLower()
+                Username = userRegistrationDto.Username
             };
 
             var createdUser = await _authRepository.Register(userToCreate, userRegistrationDto.Password);
@@ -47,7 +48,7 @@ namespace SN_App.Api.Controllers
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
-        {
+        { 
             var userFromRepo = await _authRepository.Login(userLoginDto.Username, userLoginDto.Password);
 
             if (userFromRepo == null)
