@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -21,6 +22,7 @@ using Microsoft.IdentityModel.Tokens;
 using SN_App.Api.Helpers;
 using SN_App.Repo.Data;
 using SN_App.Repo.Data.Repositories.Authentication;
+using SN_App.Repo.Data.Repositories.Users;
 
 namespace SN_App.Api
 {
@@ -38,9 +40,12 @@ namespace SN_App.Api
         {
             services.AddDbContext<DataDBContext>(x => x.UseSqlServer(Configuration.GetConnectionString("Test")));
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddCors();
+            services.AddAutoMapper();
 
             var key = Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Key").Value);
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -54,12 +59,14 @@ namespace SN_App.Api
                     };
                 });
 
+            services.AddTransient<Seed>();
             //DI
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IDatingRepository, DatingRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seed)
         {
             if (env.IsDevelopment())
             {
@@ -79,6 +86,8 @@ namespace SN_App.Api
                 }));
                 app.UseHsts();
             }
+
+            //seed.SeedUsers();
 
             app.UseCors(c => c.
                 AllowAnyHeader().

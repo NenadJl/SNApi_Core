@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
-namespace SN_App.Repo.Models
+namespace SN_App.Api.Dtos
 {
-    public class User
+    public class UserForDetailDto
     {
         public int Id { get; set; }
         public string Username { get; set; }
-        public byte[] PasswordHash { get; set; }
-        public byte[] PasswordSalt { get; set; }
-
         public string Gender { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public int Age { get; set; }
         public string KnownAS { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastActive { get; set; }
@@ -21,11 +17,9 @@ namespace SN_App.Repo.Models
         public string Interests { get; set; }
         public string City { get; set; }
         public string Country { get; set; }
-        public ICollection<Photo> Photos { get; set; }
 
-        public User()
-        {
-            Photos = new Collection<Photo>();
-        }
+        public string PhotoUrl { get; set; }
+        public ICollection<PhotoForDetailedDto> Photos { get; set; }
+
     }
 }

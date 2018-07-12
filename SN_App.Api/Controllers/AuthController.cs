@@ -55,7 +55,6 @@ namespace SN_App.Api.Controllers
                 return Unauthorized();
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            // var key = Encoding.ASCII.GetBytes("lelele"); 
             var key = Encoding.ASCII.GetBytes(_config.GetSection("AppSettings:Key").Value); 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
