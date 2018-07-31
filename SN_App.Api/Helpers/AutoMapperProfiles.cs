@@ -40,7 +40,9 @@ namespace SN_App.Api.Helpers
                         a => a.DateOfBirth.CalculateAge()
                     )
                 );
-                
+
+            CreateMap<UserForUpdateDto, User>();
+
             CreateMap<Photo, PhotoForDetailedDto>();
         }
     }
