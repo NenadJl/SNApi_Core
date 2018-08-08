@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SN_App.Repo.Models;
@@ -22,14 +23,25 @@ namespace SN_App.Repo.Data.Repositories.Users
             _context.Remove(entity);
         }
 
+        public async Task<Photo> GetMainPhotoForUser(int userId)
+        {
+            return await _context.Photos.Where(u => u.UserId == userId).FirstOrDefaultAsync(p => p.IsMain);
+        }
+
+        public async Task<Photo> GetPhoto(int id)
+        {
+            var photo = await _context.Photos.FirstOrDefaultAsync(p => p.Id == id);
+            return photo;
+        }
+
         public async Task<User> GetUser(int id)
         {
-            return await _context.Users.Include(p=>p.Photos).FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<IEnumerable<User>> GetUsers()
         {
-            return await _context.Users.Include(p=>p.Photos).ToListAsync();
+            return await _context.Users.Include(p => p.Photos).ToListAsync();
         }
 
         public async Task<bool> SaveAll()

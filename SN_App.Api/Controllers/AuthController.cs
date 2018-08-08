@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -18,11 +19,13 @@ namespace SN_App.Api.Controllers
     {
         private readonly IAuthRepository _authRepository;
         private readonly IConfiguration _config;
+        private readonly IMapper _mapper;
 
-        public AuthController(IAuthRepository authRepository, IConfiguration config )
+        public AuthController(IAuthRepository authRepository, IConfiguration config, IMapper mapper)
         {
             _authRepository = authRepository;
             _config = config;
+            _mapper = mapper;
         }
 
         [HttpPost("register")]
@@ -48,28 +51,33 @@ namespace SN_App.Api.Controllers
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
-        { 
+        {
             var userFromRepo = await _authRepository.Login(userLoginDto.Username, userLoginDto.Password);
 
             if (userFromRepo == null)
                 return Unauthorized();
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_config.GetSection("AppSettings:Key").Value); 
+            var key = Encoding.ASCII.GetBytes(_config.GetSection("AppSettings:Key").Value);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
                     new Claim(ClaimTypes.Name, userFromRepo.Username)
-                }), 
+                }),
                 Expires = DateTime.Now.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
+            var user = _mapper.Map<UserForListDto>(userFromRepo);
 
-            return Ok(new {tokenString});
+            return Ok(new
+            {
+                tokenString,
+                user
+            });
         }
     }
 

@@ -47,6 +47,8 @@ namespace SN_App.Api
             services.AddCors();
             services.AddAutoMapper();
 
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+
             var key = Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Key").Value);
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(opt => {
