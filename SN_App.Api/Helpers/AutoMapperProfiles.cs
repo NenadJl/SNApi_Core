@@ -46,6 +46,8 @@ namespace SN_App.Api.Helpers
             CreateMap<Photo, PhotoForDetailedDto>();
             CreateMap<Photo,PhotoForReturnDto>();
             CreateMap<PhotoForCreationDto, Photo>();
+
+            CreateMap<UserRegistrationDto, User>();
         }
     }
 }

@@ -39,14 +39,13 @@ namespace SN_App.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userToCreate = new User
-            {
-                Username = userRegistrationDto.Username
-            };
+            var userToCreate = _mapper.Map<User>(userRegistrationDto);
 
             var createdUser = await _authRepository.Register(userToCreate, userRegistrationDto.Password);
 
-            return StatusCode(201);
+            var userForDetailsDto = _mapper.Map<UserForDetailDto>(createdUser);
+
+            return CreatedAtRoute("GetUser", new { controller = "Users", id = createdUser.Id }, userForDetailsDto);
         }
 
         [HttpPost("login")]
