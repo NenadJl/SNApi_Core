@@ -6,9 +6,11 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SN_App.Api.Dtos;
+using SN_App.Api.Helpers;
 using SN_App.Repo.Data.Repositories.Users;
 namespace SN_App.Api.Controllers
 {
+    [ServiceFilter(typeof(LogUserActivity))]
     [Authorize]
     [Route("api/[controller]")]
     public class UsersController : Controller
