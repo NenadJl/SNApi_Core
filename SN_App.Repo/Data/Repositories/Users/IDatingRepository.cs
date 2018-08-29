@@ -14,5 +14,6 @@ namespace SN_App.Repo.Data.Repositories.Users
         Task<User> GetUser(int id);
         Task<Photo> GetPhoto(int id);
         Task<Photo> GetMainPhotoForUser(int userId);
+        Task<Like> GetLike(int userId, int recipientId);
     }
 }

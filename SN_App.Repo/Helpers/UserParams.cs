@@ -16,5 +16,7 @@ namespace SN_App.Repo.Helpers
         public int MinAge { get; set; } = 18;
         public int MaxAge { get; set; } = 99;
         public string OrderBy { get; set; }
+        public bool IsGetLikers { get; set; } = false;
+        public bool IsGetLikees { get; set; } = false;
     }
 }
