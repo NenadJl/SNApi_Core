@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using SN_App.Api.Dtos;
 using SN_App.Api.Helpers;
 using SN_App.Repo.Data.Repositories.Users;
+using SN_App.Repo.Helpers;
+
 namespace SN_App.Api.Controllers
 {
     [ServiceFilter(typeof(LogUserActivity))]
@@ -24,11 +26,22 @@ namespace SN_App.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers([FromQuery] UserParams userParams)
         {
-            var users = await _datingRepo.GetUsers();
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            var userMakingRequest = await _datingRepo.GetUser(userId);
+
+            userParams.UserId = userMakingRequest.Id;
+
+            if (userParams.Gender == null)
+                userParams.Gender = userMakingRequest.Gender;
+
+            var users = await _datingRepo.GetUsers(userParams);
 
             var usersForResponse = _mapper.Map<IEnumerable<UserForListDto>>(users);
+
+            Response.AddPagination(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
 
             return Ok(usersForResponse);
         }
@@ -46,16 +59,16 @@ namespace SN_App.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UserForUpdateDto userForUpdateDto)
         {
-            if(id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
-            
+
             var userFromRepo = await _datingRepo.GetUser(id);
 
             _mapper.Map(userForUpdateDto, userFromRepo);
 
-            if(await _datingRepo.SaveAll())
+            if (await _datingRepo.SaveAll())
                 return NoContent();
-            
+
             throw new Exception($"Updating user {id} failed on save");
         }
     }

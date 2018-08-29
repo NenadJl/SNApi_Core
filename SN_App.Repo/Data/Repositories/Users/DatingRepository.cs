@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using SN_App.Repo.Helpers;
 using SN_App.Repo.Models;
 
 namespace SN_App.Repo.Data.Repositories.Users
@@ -39,9 +41,35 @@ namespace SN_App.Repo.Data.Repositories.Users
             return await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<IEnumerable<User>> GetUsers()
+        public async Task<PagedList<User>> GetUsers(UserParams userParams)
         {
-            return await _context.Users.Include(p => p.Photos).ToListAsync();
+            var users = _context.Users.Include(p => p.Photos)
+                            .AsQueryable()
+                            .Where(u => u.Id != userParams.UserId)
+                            .Where(u => u.Gender == userParams.Gender);
+
+            if (userParams.MinAge != 18 || userParams.MaxAge != 99)
+            {
+                var minDoB = DateTime.Today.AddYears(-userParams.MaxAge - 1);
+                var maxDoB = DateTime.Today.AddYears(-userParams.MinAge);
+
+                users = users.Where(u => u.DateOfBirth >= minDoB && u.DateOfBirth <= maxDoB);
+            }
+
+            if (userParams.OrderBy != null)
+            {
+                switch (userParams.OrderBy)
+                {
+                    case "created":
+                        users = users.OrderBy(u => u.Created);
+                        break; 
+                    default:
+                        users = users.OrderBy(u => u.LastActive); 
+                        break;
+                }
+            }
+                
+            return await PagedList<User>.CreateAsync(users, userParams.PageNumber, userParams.PageSize);
         }
 
         public async Task<bool> SaveAll()
